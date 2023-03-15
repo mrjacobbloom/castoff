@@ -1,5 +1,5 @@
 /**
- * CastOff - by Jacob Bloom - Updated Feb. 2023 - MuseScore 3 version
+ * CastOff - by Jacob Bloom - Updated Mar. 2023 - MuseScore 3-4 version
  *
  * How to use: After you've finished note entry and are ready to think about layout, enable this plugin. It'll
  * automagically (do its best to) fix all systems to 2, 4, or 8 measures. What's more, it stays on after that,
@@ -35,13 +35,24 @@ import QtQuick.Controls 2.2
 import MuseScore 3.0
 
 MuseScore {
-      menuPath: 'Plugins.CastOff';
+      id: castoff;
       description: 'A drop-in replacement for MuseScore\'s layout engine that fixes all systems to 2, 4, or 8 measures.';
-      version: '1.0';
+      version: '2.0';
 
       pluginType: 'dock';
-      dockArea:   'left';
       anchors.fill: parent;
+
+      Component.onCompleted: {
+            if (mscoreMajorVersion >= 4) {
+                  castoff.title = 'CastOff';
+                  castoff.categoryCode = 'composing-arranging-tools';
+                  castoff.pluginType = 'dialog';
+                  castoff.thumbnailName = 'logo.png';
+            } else {
+                  castoff.menuPath = 'Plugins.CastOff';
+                  castoff.dockArea = 'left';
+            }
+      }
 
       /**
        * List of casting-off options available to the user, and their human-friendly names
@@ -279,9 +290,9 @@ MuseScore {
        * @returns {void}
        */
        function overrideButtonStyles(self, borderColor) {
-            this.background.border.color = borderColor || '#bbb';
-            this.background.border.width = 1;
-            this.contentItem.wrapMode = Text.WordWrap;
+            self.background.border.color = borderColor || '#bbb';
+            self.background.border.width = 1;
+            self.contentItem.wrapMode = Text.WordWrap;
        }
 
       /**
@@ -457,6 +468,7 @@ MuseScore {
                               removeElement(element);
                         }
                   }
+                  console.log('MEASURE', JSON.stringify(measure));
             } while (measure = measure.nextMeasure);
       }
       
@@ -529,7 +541,7 @@ MuseScore {
        */
       function doLayout () {
             var cursor = curScore.newCursor();
-            cursor.rewindToTick(startLayoutTick);
+            cursor.rewindToTick(startLayoutTick || 0);
             if (!cursor.measure) return;
             rewindToFirstMeasureInSystem(cursor)
             
